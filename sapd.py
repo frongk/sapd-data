@@ -95,6 +95,10 @@ class SAPDData(object):
             print('record no added: %d ' % new_record_no)
             time.sleep(sleep_interval)
 
+class Geocache(object):
+    def__init__(self, SAPDData_obj)
+        self.SAPDData = SAPDData_obj
+
 
 if __name__=="__main__":
     sapd = SAPDData('sapd.db','sapd')
