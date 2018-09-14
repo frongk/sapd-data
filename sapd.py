@@ -28,6 +28,7 @@ class SAPDData(object):
                 self.cursor = self.conn.cursor()
         else:
             self.conn = self.create_db()
+            self.cursor = self.conn.cursor()
 
 
     def create_db(self):
