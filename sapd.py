@@ -7,6 +7,8 @@ import sqlite3
 import time
 import os
 
+import pdb
+
 # don't need to see this warning every iteration
 urllib3.disable_warnings()
 
@@ -44,8 +46,13 @@ class SAPDData(object):
         table = soup.find_all('table')[1]
         data = pd.read_html(str(table),displayed_only=False)[0]
         data.columns = data.iloc[0].str.replace(' ','')
-        data = data.iloc[1:16]
-        data = data[data.columns[1:]]
+        data = data.iloc[1:16]	
+	
+        if len(data.columns) == 6:
+            data = data[data.columns[1:]]
+        if len(data.columns) >= 6:
+            data = data[data.columns[1:-2]]
+
         
         # get google maps url (for zip code)
         addresses = []
