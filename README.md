@@ -7,7 +7,7 @@ Program defaults to update every 60 seconds and offloads new data (upsert) to sq
 
 ```python
 db_name = 'sapd.db'
-table_name = sapd
+table_name = 'sapd'
 
 sapd = SAPDData(db_name, table_name)
 sapd.run_listener(sleep_interval=60)
