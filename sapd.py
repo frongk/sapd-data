@@ -7,6 +7,9 @@ import sqlite3
 import time
 import os
 
+from opencage.geocoder import OpenCageGeocode
+from key_file import OPENCAGE_KEY
+
 import pdb
 
 # don't need to see this warning every iteration
@@ -14,10 +17,16 @@ urllib3.disable_warnings()
 
 class SAPDData(object):
 
-    def __init__(self, db_name, table_name):
+    def __init__(self, db_name, table_name, geocode_table):
         self.db_name = db_name
         self.table_name = table_name
+        self.geocode_table = geocode_table
 
+        self.connect_db()
+        self.geocode_connect()
+        
+
+    def connect_db(self):
         if os.path.isfile(self.db_name):
             try:
                 self.conn = sqlite3.connect(self.db_name)
@@ -36,7 +45,18 @@ class SAPDData(object):
         conn = sqlite3.connect(self.db_name)
         data.to_sql(self.table_name, conn)
         return conn
+
         
+    def geocode_connect(self):
+        # make sure geocode table exists (create it if it doesn't)
+        try:
+            self.cursor.execute("select * from "+ self.geocode_table + " limit 1")
+        except:
+            data = [[100000, 'Test, San Antonio', 29.4241, -98.4936]]
+            df = pd.DataFrame(data, columns = ['id','Address', 'lat', 'long'])
+            df.set_index('id',inplace=True)
+            df.to_sql(self.geocode_table, self.conn)
+
     
     def get_new_data(self):
         http = urllib3.PoolManager()
@@ -84,8 +104,51 @@ class SAPDData(object):
                 insert_idx.append(idx)
 
         data.loc[insert_idx].to_sql(self.table_name, self.conn, if_exists='append')
+
+        # geocode potential new addresses
+        addresses = data.loc[insert_idx]['Address'].tolist()
+        self.geocoder_upsert(addresses)
+
         return len(insert_idx)
             
+
+    def geocoder_upsert(self, addresses):
+        
+        geocoder = OpenCageGeocode(OPENCAGE_KEY)
+
+        for address in addresses:
+            
+            if not self.address_exist_check(address):
+                query = address
+                result = geocoder.geocode(query)
+                lat = result[0]['geometry']['lat']
+                lng = result[0]['geometry']['lng']
+                id_ = self.get_max_geo_id() + 1
+                row = (id_, address, lat, lng)
+
+
+                sql_ = "insert into " + self.geocode_table +\
+                       "(id, address, lat, long) values" +\
+                       "(?,?,?,?)"
+
+                self.cursor.execute(sql_, row)
+                self.conn.commit()
+
+        
+    def address_exist_check(self, address):
+        sql_ = 'select * from ' + self.geocode_table + ' where address = \'' + address +'\''
+        result = self.cursor.execute(sql_).fetchall()
+
+        if result == []: # if empty result address does not exist
+            return False
+        else:
+            return True
+
+    def get_max_geo_id(self):
+        max_id = self.cursor.execute("select max(id) from " + self.geocode_table).fetchall()[0][0]         
+        return max_id
+
+
 
     def run_listener(self, sleep_interval=60):
         # press control-C to exit
@@ -102,12 +165,8 @@ class SAPDData(object):
             print('record no added: %d ' % new_record_no)
             time.sleep(sleep_interval)
 
-class Geocache(object):
-    def__init__(self, SAPDData_obj)
-        self.SAPDData = SAPDData_obj
-
 
 if __name__=="__main__":
-    sapd = SAPDData('sapd.db','sapd')
+    sapd = SAPDData('sapd.db','sapd','geodata')
     sapd.run_listener()
 
