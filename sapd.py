@@ -57,6 +57,11 @@ class SAPDData(object):
             df.set_index('id',inplace=True)
             df.to_sql(self.geocode_table, self.conn)
 
+            #add current addresses to db
+            data = self.get_new_data()
+            addresses = data['Address'].tolist()
+            self.geocoder_upsert(addresses)
+
     
     def get_new_data(self):
         http = urllib3.PoolManager()
