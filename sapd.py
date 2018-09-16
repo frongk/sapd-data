@@ -126,8 +126,17 @@ class SAPDData(object):
             if not self.address_exist_check(address):
                 query = address
                 result = geocoder.geocode(query)
-                lat = result[0]['geometry']['lat']
-                lng = result[0]['geometry']['lng']
+
+                try:
+                    lat = result[0]['geometry']['lat']
+                    lng = result[0]['geometry']['lng']
+                except:
+                    print(address)
+                    print(result)
+
+                    lat = 0
+                    lng = 0 
+
                 id_ = self.get_max_geo_id() + 1
                 row = (id_, address, lat, lng)
 
