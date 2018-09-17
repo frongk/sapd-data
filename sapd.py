@@ -150,8 +150,11 @@ class SAPDData(object):
 
         
     def address_exist_check(self, address):
-        sql_ = 'select * from ' + self.geocode_table + ' where address = \'' + address +'\''
-        result = self.cursor.execute(sql_).fetchall()
+        sql_ = 'select * from ' + self.geocode_table + ' where address = ?'
+        try:
+            result = self.cursor.execute(sql_,(address)).fetchall()
+        except:
+            pdb.set_trace()
 
         if result == []: # if empty result address does not exist
             return False
