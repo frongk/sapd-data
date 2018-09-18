@@ -76,10 +76,12 @@ class SAPDData(object):
 	
         if len(data.columns) == 6:
             data = data[data.columns[1:]]
-        if len(data.columns) >= 6:
-            data = data[data.columns[1:-2]]
+        elif len(data.columns) >= 6:
+            try:
+                data = data[data.columns[1:-2]]
+            except:
+                pdb.set_trace()
 
-        
         # get google maps url (for zip code)
         addresses = []
         for tr in table.find_all('tr')[1:16]:
