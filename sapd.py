@@ -79,7 +79,7 @@ class SAPDData(object):
             data = data[data.columns[1:]]
         elif len(data.columns) >= 6:
             try:
-                data = data[data.columns[1:-2]]
+                data = data[data.columns[1:6]]
             except:
                 pdb.set_trace()
 
@@ -111,7 +111,10 @@ class SAPDData(object):
             if data.loc[idx]['IncidentNumber'] not in incidents:
                 insert_idx.append(idx)
 
-        data.loc[insert_idx].to_sql(self.table_name, self.conn, if_exists='append')
+        try:
+            data.loc[insert_idx].to_sql(self.table_name, self.conn, if_exists='append')
+        except:
+            pdb.set_trace()
 
         # geocode potential new addresses
         addresses = data.loc[insert_idx]['Address'].tolist()
